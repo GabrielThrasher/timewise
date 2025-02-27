@@ -1,2 +1,14 @@
+#!/bin/sh
 cd ./app
-npx lint-staged
+
+# Folder check
+FOLDER_PATH="./node_modules"
+
+if [ ! -d "$FOLDER_PATH" ]; then
+	echo "husky is not installed, skipping precommit hooks (not an error)..."
+else
+	echo "Running precommit hooks..."
+	# run prettier + linter
+	npx lint-staged
+fi
+
