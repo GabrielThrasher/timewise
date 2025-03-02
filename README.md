@@ -1,24 +1,12 @@
-# *Timewise*
-##### *Plan smart, stress less*
-___
+# React + Vite
 
-## *About Timewise*
-College students often face difficulties when it comes to creating a balanced 
-course schedule that not only adhere to university requirements but also
-satisfy personal preferences -- all due to a variety of reasons: 
-- You're not sure what classes you want to take 
-- Data about classes, professors, etc are not centralized
-- Advisors are too busy to give a timely or detailed response, especially during
-drop/add week.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-While there are other solutions that attempt to tackle this challenge, none 
-of them provide a satisfactory solution -- nor do they take harness the power of
-newer technologies like AI to create a more streamlined process and provide
-enough features. __*Timewise is the solution.*__
+Currently, two official plugins are available:
 
-### Creators:
-- Hieu Nguyen
-- Gabriel Thrasher
-- Rohun Gargya
-- Pranav Annapareddy
-___
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
