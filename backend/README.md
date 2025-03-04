@@ -3,8 +3,9 @@ ___
 
 ## *How to Run*
 First, in the terminal, cd into the src directory, then run the following 
-command (you'll only have to do this once per session):
-- `$env:PYTHONPATH = "."`
+command (you'll only have to do this once per project per terminal):
+- `$env:PYTHONPATH = "."` for Windows, or
+- `export PYTHONPATH="."` for Mac.
 
 If you want to run a file that we created, and it's under the src 
 directory, then write your run command in a similar fashion to how you would try
