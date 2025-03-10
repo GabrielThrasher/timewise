@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #555b6e;
+  --color-primary-hover: #484c5c;
+
+  --text-color-dark: #4c4f69;
+  --text-color-light: #fff;
+
+  /* https://epicweb-dev-tailwindcss-color-tokens.fly.dev/exercise/03/01/problem?preview=solution */
+  /* I can't find --background-color in the docs */
+  --background-color-light: #fff;
+  --background-color-dark: #2a2c2d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#timewise-app {
+  height: 100vh;
+  overflow: hidden;
+}
