@@ -1,3 +1,4 @@
+backend/src/auth/firebase-adminsdk.json
 .DS_STORE
 /backend/src/model_cache
 /.idea

@@ -13,13 +13,22 @@ export const Route = createFileRoute("/_auth/register")({
 function RouteComponent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
+  const navigate = Route.useNavigate();
+  const { auth } = Route.useRouteContext();
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (email === "") return;
 
-    await register(email, password);
+    const user = await register(email, password, name, username);
+
+    if (user) {
+      auth.updateAuthPromiseAfterLogin(user);
+      await navigate({ to: "/overview" });
+    }
   };
 
   return (
@@ -40,16 +49,24 @@ function RouteComponent() {
             name="name-input"
             type="text"
             placeholder="Enter your name..."
-            // onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => setName(e.target.value)}
           />
         </div>
+        {/* <div className="mt-5">
+          <InputLabel htmlFor="name-input" text="Name" />
+          <Input
+            name="name-input"
+            type="text"
+            placeholder="Enter your university..."
+          />
+        </div> */}
         <div className="mt-5">
           <InputLabel htmlFor="username-input" text="Username" />
           <Input
             name="username-input"
             type="text"
             placeholder="Enter a unique username..."
-            // onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => setUsername(e.target.value)}
           />
         </div>
         <div className="mt-5">

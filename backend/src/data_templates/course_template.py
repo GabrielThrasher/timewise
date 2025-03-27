@@ -3,13 +3,12 @@ from data_templates.data_templates_util import list_to_str
 
 
 class Course:
-    def __init__(self, course_code, course_credit, course_name,
-                 course_description="", prereq_description="",
-                 coreq_description="", attribute=""):
-        self.course_code = self.get_course_code_format(course_code)
-        self.course_credit = course_credit
-        self.course_name = course_name
-        self.course_description = course_description
+    def __init__(self, code, credit, name, description="",
+                 prereq_description="", coreq_description="", attribute=""):
+        self.code = self.get_code_format(code)
+        self.credit = credit
+        self.name = name
+        self.description = description
         self.prereq_description = prereq_description
         self.prereq_codes = self.get_requisite_codes(prereq_description)
         self.coreq_description = coreq_description
@@ -19,10 +18,10 @@ class Course:
 
     def __eq__(self, other):
         return (
-                self.course_code == other.course_code and
-                self.course_credit == other.course_credit and
-                self.course_name == other.course_name and
-                self.course_description == other.course_description and
+                self.code == other.code and
+                self.credit == other.credit and
+                self.name == other.name and
+                self.description == other.description and
                 self.prereq_description == other.prereq_description and
                 self.prereq_codes == other.prereq_codes and
                 self.coreq_description == other.coreq_description and
@@ -36,8 +35,8 @@ class Course:
             self.prereq_description) else "No prerequisites"
         corequisites_desc_message = self.coreq_description if (
             self.coreq_description) else "No corequisites"
-        course_desc_message = self.course_description if (
-            self.course_description) else "No description"
+        course_desc_message = self.description if (
+            self.description) else "No description"
         attribute_message = self.attribute if (
             self.attribute) else "No attribute"
         prereq_codes_message = (
@@ -49,10 +48,10 @@ class Course:
 
         message = (
             f"======== {__class__.__name__} Object ========\n" +
-            f"Course Code: {self.course_code}\n" +
-            f"Course Credit: {self.course_credit}\n" +
-            f"Course Name: {self.course_name}\n" +
-            f"Course Description: {course_desc_message}\n" +
+            f"Code: {self.code}\n" +
+            f"Credit: {self.credit}\n" +
+            f"Name: {self.name}\n" +
+            f"Description: {course_desc_message}\n" +
             f"Prerequisites Description: {prerequisites_desc_message}\n" +
             prereq_codes_message +
             f"Corequisites Description: {corequisites_desc_message}\n" +
@@ -64,9 +63,9 @@ class Course:
 
         return message
 
-    def get_course_code_format(self, course_code):
+    def get_code_format(self, code):
         pattern = r"^([A-Za-z]{1,3}) ?(\d{4})([A-Za-z]?)$"
-        match = re.fullmatch(pattern, course_code)
+        match = re.fullmatch(pattern, code)
 
         if match:
             groups = match.groups()
@@ -95,7 +94,7 @@ class Course:
             else:
                 codes_unformatted.append(match)
 
-        codes = [self.get_course_code_format(code.strip()) for code in
+        codes = [self.get_code_format(code.strip()) for code in
                  codes_unformatted if code.strip()[:3].lower() not in
                  invalid_code_prefixes]
 
@@ -106,7 +105,7 @@ class Course:
         highest_grad_first_digit = 6
         invalid_level_name = "INVALID"
 
-        for char in self.course_code:
+        for char in self.code:
             if char.isdigit():
                 first_digit = int(char)
 
