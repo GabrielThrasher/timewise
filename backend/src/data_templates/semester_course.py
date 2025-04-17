@@ -4,10 +4,11 @@ from data_templates.data_templates_util import list_to_str
 
 class SemesterCourse(Course):
     def __init__(self, code, credit, name, subject, unique_id, times, locations,
-                 instructors, mode_type, final_exam_date, class_dates,
-                 department, description="", prereq_description="",
-                 coreq_description="", attribute="",
-                 additional_course_fee="None", gen_ed="NA"):
+                 instructors, instructor_ratings, mode_type, final_exam_date,
+                 class_dates, department, description="",
+                 prereq_description="", coreq_description="", attribute="",
+                 additional_course_fee="NA", gen_ed="NA",
+                 level_of_difficulty="NA", would_take_again="NA"):
         super().__init__(code, credit, name, subject, description,
                          prereq_description, coreq_description, attribute)
         # Remove all of these comments in this __init__() func after
@@ -25,8 +26,9 @@ class SemesterCourse(Course):
         # format for the time is XXYY where XX is the hour (if 9 or below put a
         # 0 in front so 9 becomes 09, 8 becomes 08, and so on) and YY is the
         # minute (if 9 or below put a 0 in front so 9 becomes 09, 8 becomes 08,
-        # and so on). The period is formated as: Period {period number}. An
-        # example is below:
+        # and so on). The period is formated as: Period {period number}; or
+        # if there's multiple period numbers: Period {start period number-end
+        # period number}. An example is below:
         # self.times = [
         #     # times for location 1, then times for location 2
         #     {"M": ("1250", "1340", "Period 6"), "W": ("1250", "1340",
@@ -37,6 +39,12 @@ class SemesterCourse(Course):
         # dictionary of times for each location is at the same index but in
         # self.times: location names in short form, for example: CAR100
         self.instructors = instructors  # list of strings: professor names
+        self.instructor_ratings = instructor_ratings  # list of strings:
+        self.level_of_difficulty = level_of_difficulty  # string: float out of 5
+        self.would_take_again = would_take_again  # string: percentage out of
+        # 100 (do not add the percent symbol)
+        # rate my professor star rating out of 5, in the same order as the
+        # professor's in self.instructors
         self.mode_type = mode_type  # string: Primarily Classroom, or Online,
         # etc...
         self.final_exam_date = final_exam_date  # string: example:
@@ -65,13 +73,16 @@ class SemesterCourse(Course):
                 self.times == other.times and
                 self.locations == other.locations and
                 self.instructors == other.instructors and
+                self.instructor_ratings == other.instructor_ratings and
                 self.mode_type == other.mode_type and
                 self.final_exam_date == other.final_exam_date and
                 self.class_dates == other.class_dates and
                 self.department == other.department and
                 self.additional_course_fee ==
                 other.additional_course_fee and
-                self.gen_ed == other.gen_ed
+                self.gen_ed == other.gen_ed and
+                self.level_of_difficulty == other.level_of_difficulty and
+                self.would_take_again == other.would_take_again
         )
 
     def __str__(self):
@@ -107,6 +118,10 @@ class SemesterCourse(Course):
                 f"Times: {self.times}\n" +
                 f"Locations: {list_to_str(self.locations)}\n" +
                 f"Instructors: {list_to_str(self.instructors)}\n" +
+                f"Instructor Ratings: "
+                f"{list_to_str(self.instructor_ratings)}\n" +
+                f"Level of Difficulty: {self.level_of_difficulty}\n" +
+                f"Would Take Again: {self.would_take_again}\n" +
                 f"Mode Type: {self.mode_type}\n" +
                 f"Final Exam Date: {self.final_exam_date}\n" +
                 f"Class Dates: {self.class_dates}\n" +
@@ -141,3 +156,39 @@ class SemesterCourse(Course):
                     return False
 
         return True
+
+    def meets_requirements(self, earliest_time="", latest_time="",
+                           period_blackouts=None, day_blackouts=None,
+                           min_instructor_rating="0",
+                           max_level_of_difficulty="", min_would_take_again=""):
+        meets_requirements = True
+
+        for time_dict in self.times:
+            for day, time_list in time_dict.items():
+                if earliest_time:
+                    if time_list[0] < earliest_time:
+                        meets_requirements = False
+                if latest_time:
+                    if time_list[1] > latest_time:
+                        meets_requirements = False
+                if period_blackouts:
+                    for period_blackout in period_blackouts:
+                        if period_blackout in time_list[2]:
+                            meets_requirements = False
+                if day_blackouts:
+                    for day_blackouts in day_blackouts:
+                        if day_blackouts == day:
+                            meets_requirements = False
+
+            if min_instructor_rating:
+                if self.instructors != ["Staff"]:
+                    if min(self.instructor_ratings) < min_instructor_rating:
+                        meets_requirements = False
+            if max_level_of_difficulty:
+                if self.level_of_difficulty > max_level_of_difficulty:
+                    meets_requirements = False
+            if min_would_take_again:
+                if self.would_take_again < min_would_take_again:
+                    meets_requirements = False
+
+        return meets_requirements
