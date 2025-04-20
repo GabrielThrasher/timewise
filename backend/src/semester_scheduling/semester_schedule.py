@@ -15,7 +15,7 @@ class SemesterScheduler:
         self.semester_courses_grouped_by_code = []
         self.valid_semester_schedules = []
         self.have_valid_semester_schedules = False
-
+        
     def get_semester_class_data(self):
         """Fetch course data from UF API for all course codes and populate self.semester_class_data."""
         for course_code in self.semester_class_codes:
@@ -93,18 +93,19 @@ class SemesterScheduler:
                                 times=times,
                                 locations=locations,
                                 instructors=instructors,
-                                #instructor_ratings=instructor_ratings,
+                                instructor_ratings=instructor_ratings,
                                 mode_type=mode_type,
                                 final_exam_date=final_exam_date,
                                 class_dates=class_dates,
                                 department=department,
                                 additional_course_fee=additional_course_fee,
                                 gen_ed=gen_ed,
-                                #level_of_difficulty=level_of_difficulty,
-                                #would_take_again=would_take_again
+                                level_of_difficulty=level_of_difficulty,
+                                would_take_again=would_take_again
                             )
                         )
         # self.semester_class_data = func() # call webscrapper function that
+        # self.semester_class_data = func() # call the API Hieu used that
         # (using the semester_course class as a data holder/template)
         # returns the data in dictionary form with the keys being the course
         # code and the values being a list of the semester_course objects
@@ -158,8 +159,13 @@ class SemesterScheduler:
             "would_take_again": would_take_again
         }
 
-    def get_all_valid_semester_schedules(self):
-        semester_courses = {}
+    def get_all_valid_semester_schedules(
+        self, earliest_time="", latest_time="", period_blackouts=None,
+        day_blackouts=None, min_instructor_rating="0",
+        max_level_of_difficulty="", min_would_take_again=""
+    ):
+        self.valid_semester_schedules = []
+
         self.semester_courses_grouped_by_code = list(
             self.semester_class_data.values())
 
@@ -171,6 +177,17 @@ class SemesterScheduler:
 
             for class_pair in all_class_pairs:
                 if not class_pair[0].is_compatible(class_pair[1]):
+                    valid_class_combo = False
+                    break
+
+            for sem_class in class_combo:
+                if not sem_class.meets_requirements(
+                        earliest_time=earliest_time, latest_time=latest_time,
+                        period_blackouts=period_blackouts,
+                        day_blackouts=day_blackouts,
+                        min_instructor_rating=min_instructor_rating,
+                        max_level_of_difficulty=max_level_of_difficulty,
+                        min_would_take_again=min_would_take_again):
                     valid_class_combo = False
                     break
 
@@ -190,6 +207,8 @@ class SemesterScheduler:
                     print(f" --------------- Course #{j+1} ---------------")
                     print(course)
                 print("*****************************************************")
+            print(f"{len(self.valid_semester_schedules)} valid semester "
+                  f"schedules found.")
         else:
             print("No valid semester schedule found.")
 
