@@ -3,6 +3,7 @@ from itertools import combinations
 from bs4 import BeautifulSoup
 import requests
 import re
+import json
 from data_templates.semester_course import SemesterCourse
 
 
@@ -16,8 +17,93 @@ class SemesterScheduler:
         self.have_valid_semester_schedules = False
 
     def get_semester_class_data(self):
-        sem_dict = {key: [] for key in self.semester_class_codes}
+        """Fetch course data from UF API for all course codes and populate self.semester_class_data."""
+        for course_code in self.semester_class_codes:
+            url = f"https://one.uf.edu/apix/soc/schedule?ai=false&auf=false&category=CWSP&class-num=&course-code={course_code}&course-title=&cred-srch=&credits=&day-f=&day-m=&day-r=&day-s=&day-t=&day-w=&dept=&eep=&fitsSchedule=false&ge=&ge-b=&ge-c=&ge-d=&ge-h=&ge-m=&ge-n=&ge-p=&ge-s=&instructor=&last-control-number=0&level-max=&level-min=&no-open-seats=false&online-a=&online-c=&online-h=&online-p=&period-b=&period-e=&prog-level=&qst-1=&qst-2=&qst-3=&quest=false&term=2258&wr-2000=&wr-4000=&wr-6000=&writing=false&var-cred=&hons=false"
 
+            try:
+                response = requests.get(url, timeout=5)
+                response.raise_for_status()
+                data = response.json()
+            except (requests.RequestException, json.JSONDecodeError) as e:
+                print(f"Error fetching data for {course_code}: {e}")
+                continue
+
+            if course_code not in self.semester_class_data:
+                self.semester_class_data[course_code] = []
+
+            for course_data in data:
+                for course in course_data.get('COURSES', []):
+                    code = course.get('code', '')
+                    name = course.get('name', '')
+                    department = course.get('sections', [{}])[0].get('deptName', '')
+                    gen_ed = course.get('sections', [{}])[0].get('genEd', [])
+                    course_id = course.get('courseId', '')
+
+                    for section in course.get('sections', []):
+                        credit = section.get('credits', 0)
+                        unique_id = section.get('classNumber', '')
+                        instructors = [instr.get('name', '') for instr in section.get('instructors', [])]
+                        meet_times = section.get('meetTimes', [])
+                        final_exam_date = section.get('finalExam', '')
+                        class_dates = f"{section.get('startDate', '')} - {section.get('endDate', '')}"
+                        additional_course_fee = section.get('courseFee', 0)
+                        mode_type = section.get('sectWeb', '')  # e.g., 'PC' for in-person
+
+                        # Format times and locations
+                        times = [
+                            f"{mt.get('meetTimeBegin', '')} - {mt.get('meetTimeEnd', '')}"
+                            for mt in meet_times
+                        ]
+                        locations = [
+                            f"{mt.get('meetBuilding', '')} {mt.get('meetRoom', '')}".strip()
+                            for mt in meet_times
+                        ]
+
+                        # Fetch instructor ratings
+                        instructor_ratings = []
+                        level_of_difficulty = "N/A"
+                        would_take_again = "N/A"
+                        if instructors:
+                            prof_rating = self.professor_rating(instructors[0])
+                            instructor_ratings = [prof_rating.get('overall_rating', 'N/A')]
+                            level_of_difficulty = prof_rating.get('level_of_difficulty', 'N/A')
+                            would_take_again = prof_rating.get('would_take_again', 'N/A')
+
+                        # Derive subject from course code (e.g., 'COP' from 'COP4600')
+                        subject = ''.join([c for c in code if c.isalpha()])
+
+                        if not locations:
+                            locations = ["Zoom"]
+
+                        if not final_exam_date:
+                            final_exam_date = ["N/A"]
+
+                        if not times:
+                            times = ["N/A"]
+
+                        # Append SemesterCourse object
+                        self.semester_class_data[code].append(
+                            SemesterCourse(
+                                code=code,
+                                credit=credit,
+                                name=name,
+                                subject=subject,
+                                unique_id=unique_id,
+                                times=times,
+                                locations=locations,
+                                instructors=instructors,
+                                #instructor_ratings=instructor_ratings,
+                                mode_type=mode_type,
+                                final_exam_date=final_exam_date,
+                                class_dates=class_dates,
+                                department=department,
+                                additional_course_fee=additional_course_fee,
+                                gen_ed=gen_ed,
+                                #level_of_difficulty=level_of_difficulty,
+                                #would_take_again=would_take_again
+                            )
+                        )
         # self.semester_class_data = func() # call webscrapper function that
         # (using the semester_course class as a data holder/template)
         # returns the data in dictionary form with the keys being the course
@@ -73,6 +159,7 @@ class SemesterScheduler:
         }
 
     def get_all_valid_semester_schedules(self):
+        semester_courses = {}
         self.semester_courses_grouped_by_code = list(
             self.semester_class_data.values())
 
@@ -109,6 +196,17 @@ class SemesterScheduler:
 codes = ["COP4600", "CAP4641"]
 scheduler = SemesterScheduler(codes)
 scheduler.get_semester_class_data()
-
-professor_name = "Alexandre Gomes de Siqueira"
-print(scheduler.professor_rating(professor_name))
+# Print contents of semester_class_data for verification
+for code, courses in scheduler.semester_class_data.items():
+    print(f"Course {code} sections:")
+    for course in courses:
+        print(f"  Section {course.unique_id}:")
+        print(f"    Name: {course.name}")
+        print(f"    Credits: {course.credit}")
+        print(f"    Times: {course.times}")
+        print(f"    Locations: {course.locations}")
+        print(f"    Instructors: {course.instructors}")
+        #print(f"    Instructor Ratings: {course.instructor_ratings}")
+        print(f"    Final Exam: {course.final_exam_date}")
+        print(f"    Department: {course.department}")
+        print("-" * 50)
