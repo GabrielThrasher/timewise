@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from src.auth.firebase_auth import verify_firebase_token
+from src.firebase import verify_firebase_token
 from src.db.users.friendship_model import insert_friendship, list_friendships, get_user_by_uid
+from src.db.schedules.schedules_model import get_schedule_by_uid
 
 router = APIRouter()
 
@@ -27,3 +28,17 @@ async def add_friend(friend_uid: str, user=Depends(verify_firebase_token)):
 async def list_friends(user=Depends(verify_firebase_token)):
     friendships = await list_friendships(user["uid"])
     return [{"friend_id": f["friend_id"]} for f in friendships]
+
+@router.get("/friends/{friend_uid}/schedule")
+async def get_friend_schedule(friend_uid: str, user=Depends(verify_firebase_token)):
+    if friend_uid == user["uid"]:
+        raise HTTPException(status_code=400, detail="Use your own schedule route.")
+
+    friendships = await list_friendships(user["uid"])
+    friend_ids = [f["friend_id"] for f in friendships]
+
+    if friend_uid not in friend_ids:
+        raise HTTPException(status_code=403, detail="You are not friends with this user.")
+
+    schedule = await get_schedule_by_uid(friend_uid)
+    return [dict(row) for row in schedule]

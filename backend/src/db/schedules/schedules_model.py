@@ -15,3 +15,8 @@ async def delete_schedule(schedule: ScheduleDelete, uid: str):
     query = "DELETE FROM schedules WHERE id = $1 AND owner_uid = $2"
     async with database.pool.acquire() as connection:
         await connection.execute(query, schedule.id, uid)
+
+async def get_schedule_by_uid(user_id: str):
+    query = "SELECT * FROM schedules WHERE owner_uid = $1"
+    async with database.pool.acquire() as connection:
+        return await connection.fetch(query, user_id)
