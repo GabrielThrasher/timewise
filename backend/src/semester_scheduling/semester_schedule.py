@@ -288,7 +288,7 @@ def get_valid_semester_schedules(
     percent_valid_over_total = (num_valid_combos/max_number_of_class_combos)*100
     print(
         f"{num_valid_combos}/{max_number_of_class_combos} "
-        f"({percent_valid_over_total:.2f})% valid semester schedules found "
+        f"({percent_valid_over_total:.2f}%) valid semester schedules found "
         f"out of all possible class combos."
         )
 
