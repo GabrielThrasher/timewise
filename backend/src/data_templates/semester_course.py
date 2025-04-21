@@ -10,9 +10,6 @@ class SemesterCourse(Course):
                  , gen_ed="NA", level_of_difficulty="NA", would_take_again="NA"):
         super().__init__(code, credit, name, subject, description,
                          prereq_description, coreq_description, attribute)
-        # Remove all of these comments in this __init__() func after
-        # semester_scheduler and the webscrapper to get the data from One.Uf is
-        # done.
         self.unique_id = unique_id  # 5 digit unique course code after the
         # hashtag in One.UF
         self.times = times  # list of times for each location. That is,

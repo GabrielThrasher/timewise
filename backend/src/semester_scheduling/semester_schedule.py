@@ -37,6 +37,8 @@ class SemesterScheduler:
             for course_data in data:
                 for course in course_data.get('COURSES', []):
                     code = course.get('code', '')
+                    if code != course_code:
+                        continue
                     name = course.get('name', '')
                     department = course.get('sections', [{}])[0].get('deptName', '')
                     gen_ed = course.get('sections', [{}])[0].get('genEd', [])
@@ -94,9 +96,10 @@ class SemesterScheduler:
                         for location, times in location_groups.items():
                             formatted_times.append(times)
 
-                        times = formatted_times if formatted_times else ["N/A"]
+                        times = formatted_times if formatted_times else []
 
-                        locations = list(location_groups.keys()) if location_groups else ["Zoom"]
+                        locations = list(location_groups.keys()) if (
+                            location_groups) else ["Online"]
 
                         # Fetch instructor ratings
                         instructor_ratings = []
@@ -112,7 +115,7 @@ class SemesterScheduler:
                         subject = ''.join([c for c in code if c.isalpha()])
 
                         if not final_exam_date:
-                            final_exam_date = ["N/A"]
+                            final_exam_date = "N/A"
 
                         # Append SemesterCourse object
                         self.semester_class_data[code].append(
@@ -228,7 +231,7 @@ class SemesterScheduler:
         if len(self.valid_semester_schedules) != 0:
             self.have_valid_semester_schedules = True
 
-    def print_valid_semester_schedules(self):
+    def print_valid_semester_schedules(self, extra_verbose=False):
         if self.have_valid_semester_schedules:
             for i, valid_semester_schedule in (
                     enumerate(self.valid_semester_schedules)):
@@ -236,27 +239,81 @@ class SemesterScheduler:
                       f"*****************")
                 for j, course in enumerate(valid_semester_schedule):
                     print(f" --------------- Course #{j+1} ---------------")
-                    print(course)
+                    if extra_verbose:
+                        print(course)
+                    else:
+                        print(f"{course.code} {course.name} "
+                              f"(#{course.unique_id})")
                 print("*****************************************************")
-            print(f"{len(self.valid_semester_schedules)} valid semester "
-                  f"schedules found.")
         else:
             print("No valid semester schedule found.")
 
-codes = ["COP4600", "CAP4641", "MAC2313"]
-scheduler = SemesterScheduler(codes)
-scheduler.get_semester_class_data()
-for code, courses in scheduler.semester_class_data.items():
-    print(f"Course {code} sections:")
-    for course in courses:
-        print(course)  # Calls the __str__ method of SemesterCourse
-        print("-" * 50)
 
-# print("\nAll valid combos of classes with NO filters")
-# scheduler.get_all_valid_semester_schedules(
-#     earliest_time="", latest_time="", period_blackouts=[],
-#     day_blackouts=[], min_instructor_rating="",
-#     max_level_of_difficulty="",
-#     min_would_take_again=""
-# )
-# scheduler.print_valid_semester_schedules()
+# Call this function when trying to get the data for the frontend
+def get_valid_semester_schedules(
+    codes, filters, verbose=False, extra_verbose=False
+):
+    scheduler = SemesterScheduler(codes)
+    scheduler.get_semester_class_data()
+    max_number_of_class_combos = 1
+
+    for courses in scheduler.semester_class_data.values():
+        max_number_of_class_combos *= len(courses)
+
+    if verbose:
+        for code, courses in scheduler.semester_class_data.items():
+            print(f"Course {code} sections:")
+            for course in courses:
+                if extra_verbose:
+                    print(course)
+                else:
+                    print(f"{course.code} {course.name} (#{course.unique_id})")
+                print("-" * 50)
+
+    if verbose:
+        print("\nAll valid combos of classes with the given filters")
+    scheduler.get_all_valid_semester_schedules(
+        earliest_time=filters["earliest_time"],
+        latest_time=filters["latest_time"],
+        period_blackouts=filters["period_blackouts"],
+        day_blackouts=filters["day_blackouts"],
+        min_instructor_rating=filters["min_instructor_rating"],
+        max_level_of_difficulty=filters["max_level_of_difficulty"],
+        min_would_take_again=filters["min_would_take_again"]
+    )
+    if verbose:
+        scheduler.print_valid_semester_schedules(extra_verbose=extra_verbose)
+
+    num_valid_combos = len(scheduler.valid_semester_schedules)
+    percent_valid_over_total = (num_valid_combos/max_number_of_class_combos)*100
+    print(
+        f"{num_valid_combos}/{max_number_of_class_combos} "
+        f"({percent_valid_over_total:.2f}%) valid semester schedules found "
+        f"out of all possible class combos."
+        )
+
+    return scheduler.valid_semester_schedules
+
+
+def main():
+    codes = ["MAC2313", "PHY2049", "PHY2049L", "CAP4641", "COP4600"]
+    # These are the default filters (that is, they technically don't filter and
+    # this combination gives the max number of valid schedules for any set of
+    # class codes).
+    filters = {
+        "earliest_time": "",
+        "latest_time": "",
+        "period_blackouts": [],
+        "day_blackouts": [],
+        "min_instructor_rating": "",
+        "max_level_of_difficulty": "",
+        "min_would_take_again": ""
+    }
+
+    valid_schedules = get_valid_semester_schedules(
+        codes, filters, verbose=False, extra_verbose=False
+    )
+
+
+if __name__ == "__main__":
+    main()
