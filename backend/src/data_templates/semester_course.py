@@ -6,9 +6,8 @@ class SemesterCourse(Course):
     def __init__(self, code, credit, name, subject, unique_id, times, locations,
                  instructors, instructor_ratings, mode_type, final_exam_date,
                  class_dates, department, description="",
-                 prereq_description="", coreq_description="", attribute="",
-                 additional_course_fee="NA", gen_ed="NA",
-                 level_of_difficulty="NA", would_take_again="NA"):
+                 prereq_description="", coreq_description="", attribute=""
+                 , gen_ed="NA", level_of_difficulty="NA", would_take_again="NA"):
         super().__init__(code, credit, name, subject, description,
                          prereq_description, coreq_description, attribute)
         # Remove all of these comments in this __init__() func after
@@ -31,7 +30,7 @@ class SemesterCourse(Course):
         # period number}. An example is below:
         # self.times = [
         #     # times for location 1, then times for location 2
-        #     {"M": ("1250", "1340", "Period 6"), "W": ("1250", "1340",
+        #     {"M": ["1250", "1340", "Period 6"], "W": ("1250", "1340",
         #     "Period 6"), "F": ("1250", "1340", "Period 6")}, {"T": ("1040",
         #     "1130", "Period 4")}
         # ]
@@ -52,8 +51,6 @@ class SemesterCourse(Course):
         self.class_dates = class_dates  # string: example:
         # 08/21/2025 - 12/03/2025
         self.department = department  # string: example: Physics
-        self.additional_course_fee = additional_course_fee  # string: X.XX
-        # (like money format without dollars symbol):
         self.gen_ed = gen_ed  # string: example: Physical Science
 
     def __eq__(self, other):
@@ -78,8 +75,6 @@ class SemesterCourse(Course):
                 self.final_exam_date == other.final_exam_date and
                 self.class_dates == other.class_dates and
                 self.department == other.department and
-                self.additional_course_fee ==
-                other.additional_course_fee and
                 self.gen_ed == other.gen_ed and
                 self.level_of_difficulty == other.level_of_difficulty and
                 self.would_take_again == other.would_take_again
@@ -126,7 +121,6 @@ class SemesterCourse(Course):
                 f"Final Exam Date: {self.final_exam_date}\n" +
                 f"Class Dates: {self.class_dates}\n" +
                 f"Department: {self.department}\n" +
-                f"Additional Course Fee: {self.additional_course_fee}\n" +
                 f"Gen ED: {self.gen_ed}\n" +
                 "==============================="
         )

@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import requests
 import re
 import json
+from datetime import datetime
 from data_templates.semester_course import SemesterCourse
 
 
@@ -18,6 +19,7 @@ class SemesterScheduler:
         
     def get_semester_class_data(self):
         """Fetch course data from UF API for all course codes and populate self.semester_class_data."""
+
         for course_code in self.semester_class_codes:
             url = f"https://one.uf.edu/apix/soc/schedule?ai=false&auf=false&category=CWSP&class-num=&course-code={course_code}&course-title=&cred-srch=&credits=&day-f=&day-m=&day-r=&day-s=&day-t=&day-w=&dept=&eep=&fitsSchedule=false&ge=&ge-b=&ge-c=&ge-d=&ge-h=&ge-m=&ge-n=&ge-p=&ge-s=&instructor=&last-control-number=0&level-max=&level-min=&no-open-seats=false&online-a=&online-c=&online-h=&online-p=&period-b=&period-e=&prog-level=&qst-1=&qst-2=&qst-3=&quest=false&term=2258&wr-2000=&wr-4000=&wr-6000=&writing=false&var-cred=&hons=false"
 
@@ -38,7 +40,6 @@ class SemesterScheduler:
                     name = course.get('name', '')
                     department = course.get('sections', [{}])[0].get('deptName', '')
                     gen_ed = course.get('sections', [{}])[0].get('genEd', [])
-                    course_id = course.get('courseId', '')
 
                     for section in course.get('sections', []):
                         credit = section.get('credits', 0)
@@ -51,14 +52,51 @@ class SemesterScheduler:
                         mode_type = section.get('sectWeb', '')  # e.g., 'PC' for in-person
 
                         # Format times and locations
-                        times = [
-                            f"{mt.get('meetTimeBegin', '')} - {mt.get('meetTimeEnd', '')}"
-                            for mt in meet_times
-                        ]
-                        locations = [
-                            f"{mt.get('meetBuilding', '')} {mt.get('meetRoom', '')}".strip()
-                            for mt in meet_times
-                        ]
+                        period_lookup = {
+                            "0725": "Period 1", "0830": "Period 2", "0935": "Period 3",
+                            "1040": "Period 4", "1145": "Period 5", "1250": "Period 6",
+                            "1355": "Period 7", "1500": "Period 8", "1605": "Period 9",
+                            "1710": "Period 10", "1815": "Period 11", "1920": "Period 12"
+                        }
+
+                        def convert_to_military(time_str):
+                            dt = datetime.strptime(time_str.strip(), '%I:%M %p')
+                            return dt.strftime('%H%M')
+
+                        # Initialize reformatted times list
+                        formatted_times = []
+                        location_groups = {}
+
+                        for mt in meet_times:
+                            day = mt.get('meetDays', '')  # E.g., "MWF"
+                            raw_start = mt.get('meetTimeBegin', '')
+                            raw_end = mt.get('meetTimeEnd', '')
+                            location = f"{mt.get('meetBuilding', '')} {mt.get('meetRoom', '')}".strip()
+
+                            if not raw_start or not raw_end:
+                                continue
+
+                            try:
+                                start_time = convert_to_military(raw_start)
+                                end_time = convert_to_military(raw_end)
+                            except ValueError:
+                                continue
+
+                            period = period_lookup[start_time]
+                            day_dict = {d: [start_time, end_time, period] for d in day}
+
+                            # Group by location
+                            if location not in location_groups:
+                                location_groups[location] = {}
+                            location_groups[location].update(day_dict)
+
+                        # Convert location groups to formatted times
+                        for location, times in location_groups.items():
+                            formatted_times.append(times)
+
+                        times = formatted_times if formatted_times else ["N/A"]
+
+                        locations = list(location_groups.keys()) if location_groups else ["Zoom"]
 
                         # Fetch instructor ratings
                         instructor_ratings = []
@@ -73,14 +111,8 @@ class SemesterScheduler:
                         # Derive subject from course code (e.g., 'COP' from 'COP4600')
                         subject = ''.join([c for c in code if c.isalpha()])
 
-                        if not locations:
-                            locations = ["Zoom"]
-
                         if not final_exam_date:
                             final_exam_date = ["N/A"]
-
-                        if not times:
-                            times = ["N/A"]
 
                         # Append SemesterCourse object
                         self.semester_class_data[code].append(
@@ -98,7 +130,6 @@ class SemesterScheduler:
                                 final_exam_date=final_exam_date,
                                 class_dates=class_dates,
                                 department=department,
-                                additional_course_fee=additional_course_fee,
                                 gen_ed=gen_ed,
                                 level_of_difficulty=level_of_difficulty,
                                 would_take_again=would_take_again
@@ -212,20 +243,20 @@ class SemesterScheduler:
         else:
             print("No valid semester schedule found.")
 
-codes = ["COP4600", "CAP4641"]
+codes = ["COP4600", "CAP4641", "MAC2313"]
 scheduler = SemesterScheduler(codes)
 scheduler.get_semester_class_data()
-# Print contents of semester_class_data for verification
 for code, courses in scheduler.semester_class_data.items():
     print(f"Course {code} sections:")
     for course in courses:
-        print(f"  Section {course.unique_id}:")
-        print(f"    Name: {course.name}")
-        print(f"    Credits: {course.credit}")
-        print(f"    Times: {course.times}")
-        print(f"    Locations: {course.locations}")
-        print(f"    Instructors: {course.instructors}")
-        #print(f"    Instructor Ratings: {course.instructor_ratings}")
-        print(f"    Final Exam: {course.final_exam_date}")
-        print(f"    Department: {course.department}")
+        print(course)  # Calls the __str__ method of SemesterCourse
         print("-" * 50)
+
+# print("\nAll valid combos of classes with NO filters")
+# scheduler.get_all_valid_semester_schedules(
+#     earliest_time="", latest_time="", period_blackouts=[],
+#     day_blackouts=[], min_instructor_rating="",
+#     max_level_of_difficulty="",
+#     min_would_take_again=""
+# )
+# scheduler.print_valid_semester_schedules()
