@@ -23,11 +23,11 @@ export const Route = createFileRoute("/_protected")({
 
 function RouteComponent() {
   return (
-    <div className="app-container">
-      <LeftMenu />
-      <TopMenu />
+    <div className="flex justify-center overflow-y-auto h-full">
+      {/* <LeftMenu /> */}
+      {/* <TopMenu /> */}
 
-      <main className="px-10 mt-2">
+      <main className="px-10 mx-auto mt-10 min-w-[1100px]">
         <Outlet />
       </main>
     </div>
@@ -85,7 +85,7 @@ function LeftMenu() {
     <div className="left-menu py-3 border-r-1 border-gray-200">
       <Profile />
 
-      <PagesMenu />
+      {/* <PagesMenu /> */}
 
       <div className="mt-6">
         <FriendsList />
@@ -100,8 +100,8 @@ function PagesMenu() {
       <p className="opacity-65 text-sm pl-4 pb-2 select-none">Pages</p>
       <div className="hover:cursor-pointer">
         <PagesMenuItem title="Overview" to="/overview" />
-        <PagesMenuItem title="Class schedules" to="/schedules" />
-        <PagesMenuItem title="4-year plans" to="/plans" />
+        {/* <PagesMenuItem title="Class schedules" to="/schedules" />
+        <PagesMenuItem title="4-year plans" to="/plans" /> */}
       </div>
     </div>
   );

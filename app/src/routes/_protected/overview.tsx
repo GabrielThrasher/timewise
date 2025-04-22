@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  useNavigate,
+  useRouter,
+} from "@tanstack/react-router";
 import {
   useSuspenseQuery,
   useQueryErrorResetBoundary,
+  useQueryClient,
 } from "@tanstack/react-query";
 import FourYearPlansList from "../../components/overview/FourYearPlansList";
 import ClassSchedulesList from "../../components/overview/ClassSchedulesList";
@@ -11,6 +16,9 @@ import { overviewInfoQueryOptions } from "../../queryOptions";
 import TimewiseModal from "../../components/Modal";
 import FourYearPlanDetails from "../../components/FourYearPlanDetails";
 import ScheduleDetails from "../../components/ScheduleDetails";
+import FriendsList from "../../components/overview/FriendsList";
+import { dataClient } from "../../dataClient";
+import { logOut } from "../../auth";
 
 export const Route = createFileRoute("/_protected/overview")({
   loader: async ({ context }) => {
@@ -35,23 +43,57 @@ function RouteComponent() {
 }
 
 function OverviewHeader() {
-  const university = useSuspenseQuery({
-    ...overviewInfoQueryOptions,
-    select: (data) => data.university,
-  });
+  const [user, setUser] = useState<any>(null);
+  // const university = useSuspenseQuery({
+  //   ...overviewInfoQueryOptions,
+  //   select: (data) => data.university,
+  // });
+  // const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchUserInfo() {
+      const user: any = await dataClient.getUserInfo();
+      setUser(user[0]);
+    }
+
+    fetchUserInfo();
+  }, []);
+
+  if (!user) return <p>Loading...</p>;
 
   return (
     <div className="flex items-start justify-between">
       <div className="overview-header-left">
-        <p className="text-xl">Overview</p>
-        <p className="text-gray-500">
-          Major: Computer Science
-          <span className="px-3">|</span>
-          Year: 2nd
-        </p>
+        <div className="flex items-center rounded-md">
+          {/* <img
+            className="block w-8 h-8 rounded-md border-primary border-1"
+            src="./profile.jpeg"
+            alt="Rounded avatar"
+          /> */}
+
+          <p className="text-xl">{user.name}</p>
+          <button
+            className="text-sm ml-5 mt-1 text-gray-500 cursor-pointer hover:bg-gray-100 p-1"
+            onClick={async () => {
+              await logOut();
+              // navigate({ to: "/" });
+              window.location.href = "/";
+            }}
+          >
+            Logout
+          </button>
+        </div>
+        <div className="mt-3">
+          <p className="text-gray-500">
+            Major: {user.major}
+            <span className="px-3">|</span>
+            Year: {user.year}
+          </p>
+        </div>
       </div>
       <div className="overview-header-right">
-        <p>{university.data}</p>
+        {/* <p>{university.data}</p> */}
+        <p>Timewise ⏰</p>
         <p className="text-right opacity-55">Spring 2025</p>
       </div>
     </div>
@@ -69,6 +111,7 @@ function OverviewItemsContainer() {
       schedules: data.schedules,
     }),
   });
+  const queryClient = useQueryClient();
 
   return (
     <div className="flex mt-6 justify-between gap-5 w-full">
@@ -84,19 +127,39 @@ function OverviewItemsContainer() {
           selectItem={(id) => setScheduleSelected(id)}
         />
       </OverviewItem>
-      <OverviewItem>
-        <Calendar />
-      </OverviewItem>
+      <div className="w-full">
+        <div className="w-full border-1 border-gray-200 rounded-md overflow-hidden">
+          <Calendar />
+        </div>
+        <div className="mt-3 border-1 border-gray-200 rounded-md overflow-hidden">
+          <div className="flex flex-col justify-center">
+            <div className="p-1">
+              <p className="text-base font-semibold text-gray-500 bg-indigo-50 p-2 rounded-md">
+                Friends
+              </p>
+            </div>
+            <div>
+              <FriendsList />
+            </div>
+          </div>
+        </div>
+      </div>
 
       <TimewiseModal
         isOpen={!!planSelected || !!scheduleSelected}
         onRequestClose={() => {
           setPlanSelected(null);
           setScheduleSelected(null);
+          queryClient.invalidateQueries();
         }}
       >
         {!!planSelected && <FourYearPlanDetails id={planSelected} />}
-        {!!scheduleSelected && <ScheduleDetails id={scheduleSelected} />}
+        {!!scheduleSelected && (
+          <ScheduleDetails
+            id={scheduleSelected}
+            name={data.schedules.find((i) => i.id === scheduleSelected)?.name}
+          />
+        )}
       </TimewiseModal>
     </div>
   );

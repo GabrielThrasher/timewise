@@ -4,4 +4,5 @@ class User(BaseModel):
     uid: str
     name: str
     email: str
-    username: str
+    major: str
+    year: str

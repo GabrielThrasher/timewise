@@ -13,6 +13,7 @@ const customStyles = {
     transform: "translate(-50%, -50%)",
     width: "85%",
     height: "600px",
+    overflow: "none",
   },
 };
 
@@ -26,7 +27,7 @@ function TimewiseModal({ children, ...props }: Modal.Props) {
       shouldCloseOnEsc
       style={props.style ? props.style : customStyles}
     >
-      <div className="text-lg">{children}</div>
+      <div className="h-full">{children}</div>
     </Modal>
   );
 }

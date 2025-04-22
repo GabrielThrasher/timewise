@@ -18,6 +18,7 @@ import { Route as ProtectedSchedulesImport } from "./routes/_protected/schedules
 import { Route as ProtectedPlansImport } from "./routes/_protected/plans";
 import { Route as ProtectedOverviewImport } from "./routes/_protected/overview";
 import { Route as AuthRegisterImport } from "./routes/_auth/register";
+import { Route as ProtectedFriendsFriendIdImport } from "./routes/_protected/friends.$friendId";
 
 // Create/Update Routes
 
@@ -59,6 +60,12 @@ const AuthRegisterRoute = AuthRegisterImport.update({
   id: "/register",
   path: "/register",
   getParentRoute: () => AuthLayoutRoute,
+} as any);
+
+const ProtectedFriendsFriendIdRoute = ProtectedFriendsFriendIdImport.update({
+  id: "/friends/$friendId",
+  path: "/friends/$friendId",
+  getParentRoute: () => ProtectedLayoutRoute,
 } as any);
 
 // Populate the FileRoutesByPath interface
@@ -114,6 +121,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthIndexImport;
       parentRoute: typeof AuthLayoutImport;
     };
+    "/_protected/friends/$friendId": {
+      id: "/_protected/friends/$friendId";
+      path: "/friends/$friendId";
+      fullPath: "/friends/$friendId";
+      preLoaderRoute: typeof ProtectedFriendsFriendIdImport;
+      parentRoute: typeof ProtectedLayoutImport;
+    };
   }
 }
 
@@ -137,12 +151,14 @@ interface ProtectedLayoutRouteChildren {
   ProtectedOverviewRoute: typeof ProtectedOverviewRoute;
   ProtectedPlansRoute: typeof ProtectedPlansRoute;
   ProtectedSchedulesRoute: typeof ProtectedSchedulesRoute;
+  ProtectedFriendsFriendIdRoute: typeof ProtectedFriendsFriendIdRoute;
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedOverviewRoute: ProtectedOverviewRoute,
   ProtectedPlansRoute: ProtectedPlansRoute,
   ProtectedSchedulesRoute: ProtectedSchedulesRoute,
+  ProtectedFriendsFriendIdRoute: ProtectedFriendsFriendIdRoute,
 };
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(
@@ -156,6 +172,7 @@ export interface FileRoutesByFullPath {
   "/plans": typeof ProtectedPlansRoute;
   "/schedules": typeof ProtectedSchedulesRoute;
   "/": typeof AuthIndexRoute;
+  "/friends/$friendId": typeof ProtectedFriendsFriendIdRoute;
 }
 
 export interface FileRoutesByTo {
@@ -165,6 +182,7 @@ export interface FileRoutesByTo {
   "/plans": typeof ProtectedPlansRoute;
   "/schedules": typeof ProtectedSchedulesRoute;
   "/": typeof AuthIndexRoute;
+  "/friends/$friendId": typeof ProtectedFriendsFriendIdRoute;
 }
 
 export interface FileRoutesById {
@@ -176,13 +194,28 @@ export interface FileRoutesById {
   "/_protected/plans": typeof ProtectedPlansRoute;
   "/_protected/schedules": typeof ProtectedSchedulesRoute;
   "/_auth/": typeof AuthIndexRoute;
+  "/_protected/friends/$friendId": typeof ProtectedFriendsFriendIdRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "" | "/register" | "/overview" | "/plans" | "/schedules" | "/";
+  fullPaths:
+    | ""
+    | "/register"
+    | "/overview"
+    | "/plans"
+    | "/schedules"
+    | "/"
+    | "/friends/$friendId";
   fileRoutesByTo: FileRoutesByTo;
-  to: "" | "/register" | "/overview" | "/plans" | "/schedules" | "/";
+  to:
+    | ""
+    | "/register"
+    | "/overview"
+    | "/plans"
+    | "/schedules"
+    | "/"
+    | "/friends/$friendId";
   id:
     | "__root__"
     | "/_auth"
@@ -191,7 +224,8 @@ export interface FileRouteTypes {
     | "/_protected/overview"
     | "/_protected/plans"
     | "/_protected/schedules"
-    | "/_auth/";
+    | "/_auth/"
+    | "/_protected/friends/$friendId";
   fileRoutesById: FileRoutesById;
 }
 
@@ -231,7 +265,8 @@ export const routeTree = rootRoute
       "children": [
         "/_protected/overview",
         "/_protected/plans",
-        "/_protected/schedules"
+        "/_protected/schedules",
+        "/_protected/friends/$friendId"
       ]
     },
     "/_auth/register": {
@@ -253,6 +288,10 @@ export const routeTree = rootRoute
     "/_auth/": {
       "filePath": "_auth/index.tsx",
       "parent": "/_auth"
+    },
+    "/_protected/friends/$friendId": {
+      "filePath": "_protected/friends.$friendId.tsx",
+      "parent": "/_protected"
     }
   }
 }

@@ -22,13 +22,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} context={{ auth }} />
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   );
 }
 
 createRoot(document.getElementById("timewise-app")!).render(
   <StrictMode>
-    <App />,
+    <App />
   </StrictMode>,
 );

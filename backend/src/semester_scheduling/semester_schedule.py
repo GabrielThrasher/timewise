@@ -5,8 +5,11 @@ import requests
 import re
 import json
 from datetime import datetime
-from data_templates.semester_course import SemesterCourse
 
+import sys
+sys.path.append("/Users/hieu/dev/timewise/backend/src")
+
+from data_templates.semester_course import SemesterCourse
 
 class SemesterScheduler:
     def __init__(self, semester_class_codes):
@@ -19,10 +22,11 @@ class SemesterScheduler:
         
     def get_semester_class_data(self):
         """Fetch course data from UF API for all course codes and populate self.semester_class_data."""
+        # print(self.semester_class_codes)
 
         for course_code in self.semester_class_codes:
             url = f"https://one.uf.edu/apix/soc/schedule?ai=false&auf=false&category=CWSP&class-num=&course-code={course_code}&course-title=&cred-srch=&credits=&day-f=&day-m=&day-r=&day-s=&day-t=&day-w=&dept=&eep=&fitsSchedule=false&ge=&ge-b=&ge-c=&ge-d=&ge-h=&ge-m=&ge-n=&ge-p=&ge-s=&instructor=&last-control-number=0&level-max=&level-min=&no-open-seats=false&online-a=&online-c=&online-h=&online-p=&period-b=&period-e=&prog-level=&qst-1=&qst-2=&qst-3=&quest=false&term=2258&wr-2000=&wr-4000=&wr-6000=&writing=false&var-cred=&hons=false"
-
+            # print(url)
             try:
                 response = requests.get(url, timeout=5)
                 response.raise_for_status()
@@ -35,15 +39,38 @@ class SemesterScheduler:
                 self.semester_class_data[course_code] = []
 
             for course_data in data:
+                # print(json.dumps(course_data, indent=4, ensure_ascii=False))
                 for course in course_data.get('COURSES', []):
                     code = course.get('code', '')
-                    if code != course_code:
+
+                    temp_code = code
+                    if (not code[-1].isdigit() and code[-1] != 'L'): temp_code = code[:-1]
+
+                    if (temp_code != course_code):
                         continue
+
+                    # if (not temp_code[-1].isdigit() and course_code[-1].isdigit()): 
+                    #     temp_code = temp_code[:-1]
+                    #     if temp_code != course_code:
+                    #         continue
+                    
+                    # PHY2049 -> PHY2049, PHY2049L
+                    # COP3503 -> COP3503C (actual)
+
+                    # temp_course_code = course_code 
+                    # if (not temp_course_code[-1].isdigit()): temp_course_code = temp_course_code[:-1]
+
+                    # if temp_code != temp_course_code:
+                    #     continue
+
                     name = course.get('name', '')
                     department = course.get('sections', [{}])[0].get('deptName', '')
                     gen_ed = course.get('sections', [{}])[0].get('genEd', [])
-
+                    # print(course)
+                    # print(json.dumps(course, indent=4, ensure_ascii=False))
                     for section in course.get('sections', []):
+                        # print(json.dumps(section, indent=4, ensure_ascii=False))
+                        # print("aa:", section)
                         credit = section.get('credits', 0)
                         unique_id = section.get('classNumber', '')
                         instructors = [instr.get('name', '') for instr in section.get('instructors', [])]
@@ -118,26 +145,33 @@ class SemesterScheduler:
                             final_exam_date = "N/A"
 
                         # Append SemesterCourse object
-                        self.semester_class_data[code].append(
-                            SemesterCourse(
-                                code=code,
-                                credit=credit,
-                                name=name,
-                                subject=subject,
-                                unique_id=unique_id,
-                                times=times,
-                                locations=locations,
-                                instructors=instructors,
-                                instructor_ratings=instructor_ratings,
-                                mode_type=mode_type,
-                                final_exam_date=final_exam_date,
-                                class_dates=class_dates,
-                                department=department,
-                                gen_ed=gen_ed,
-                                level_of_difficulty=level_of_difficulty,
-                                would_take_again=would_take_again
+                        # print(self.semester_class_data)
+                        # for c in self.semester_class_data:
+                        #     print(c)
+                        if (temp_code in self.semester_class_data): 
+                            self.semester_class_data[temp_code].append(
+                                SemesterCourse(
+                                    code=code,
+                                    credit=credit,
+                                    name=name,
+                                    subject=subject,
+                                    unique_id=unique_id,
+                                    times=times,
+                                    locations=locations,
+                                    instructors=instructors,
+                                    instructor_ratings=instructor_ratings,
+                                    mode_type=mode_type,
+                                    final_exam_date=final_exam_date,
+                                    class_dates=class_dates,
+                                    department=department,
+                                    gen_ed=gen_ed,
+                                    level_of_difficulty=level_of_difficulty,
+                                    would_take_again=would_take_again
+                                )
                             )
-                        )
+                        
+
+                        # print(self.semester_class_data[code])
         # self.semester_class_data = func() # call webscrapper function that
         # self.semester_class_data = func() # call the API Hieu used that
         # (using the semester_course class as a data holder/template)
@@ -272,31 +306,44 @@ def get_valid_semester_schedules(
 
     if verbose:
         print("\nAll valid combos of classes with the given filters")
-    scheduler.get_all_valid_semester_schedules(
-        earliest_time=filters["earliest_time"],
-        latest_time=filters["latest_time"],
-        period_blackouts=filters["period_blackouts"],
-        day_blackouts=filters["day_blackouts"],
-        min_instructor_rating=filters["min_instructor_rating"],
-        max_level_of_difficulty=filters["max_level_of_difficulty"],
-        min_would_take_again=filters["min_would_take_again"]
-    )
+    
+    if __name__ == "__main__":
+        scheduler.get_all_valid_semester_schedules(
+            earliest_time=filters["earliest_time"],
+            latest_time=filters["latest_time"],
+            period_blackouts=filters["period_blackouts"],
+            day_blackouts=filters["day_blackouts"],
+            min_instructor_rating=filters["min_instructor_rating"],
+            max_level_of_difficulty=filters["max_level_of_difficulty"],
+            min_would_take_again=filters["min_would_take_again"]
+        )
+    else:
+        scheduler.get_all_valid_semester_schedules(
+            earliest_time=filters.earliest_time,
+            latest_time=filters.latest_time,
+            period_blackouts=filters.period_blackouts,
+            day_blackouts=filters.day_blackouts,
+            min_instructor_rating=filters.min_instructor_rating,
+            max_level_of_difficulty=filters.max_level_of_difficulty,
+            min_would_take_again=filters.min_would_take_again
+        )
     if verbose:
         scheduler.print_valid_semester_schedules(extra_verbose=extra_verbose)
 
     num_valid_combos = len(scheduler.valid_semester_schedules)
-    percent_valid_over_total = (num_valid_combos/max_number_of_class_combos)*100
-    print(
-        f"{num_valid_combos}/{max_number_of_class_combos} "
-        f"({percent_valid_over_total:.2f}%) valid semester schedules found "
-        f"out of all possible class combos."
-        )
+    # percent_valid_over_total = (num_valid_combos/max_number_of_class_combos)*100
+    # print(
+    #     f"{num_valid_combos}/{max_number_of_class_combos} "
+    #     f"({percent_valid_over_total:.2f}%) valid semester schedules found "
+    #     f"out of all possible class combos."
+    #     )
 
     return scheduler.valid_semester_schedules
 
 
 def main():
     codes = ["MAC2313", "PHY2049", "PHY2049L", "CAP4641", "COP4600"]
+    # codes = ["MAC2313"]
     # These are the default filters (that is, they technically don't filter and
     # this combination gives the max number of valid schedules for any set of
     # class codes).
@@ -313,6 +360,8 @@ def main():
     valid_schedules = get_valid_semester_schedules(
         codes, filters, verbose=False, extra_verbose=False
     )
+
+    # print(valid_schedules)
 
 
 if __name__ == "__main__":

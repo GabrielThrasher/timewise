@@ -4,5 +4,16 @@ import { dataClient } from "./dataClient";
 export const overviewInfoQueryOptions = queryOptions({
   queryKey: ["overviewInfo"],
   queryFn: () => dataClient.getOverviewInfo(),
-  staleTime: 3000,
 });
+
+export const scheduleQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: ["scheduleInfo", id],
+    queryFn: () => dataClient.getSchedule(id),
+  });
+
+export const planQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: ["planInfo", id],
+    queryFn: () => dataClient.getPlan(id),
+  });

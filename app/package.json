@@ -13,6 +13,7 @@
     "test": "echo test"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.1",
     "@tailwindcss/vite": "^4.0.12",
     "@tanstack/react-query": "^5.69.0",
     "@tanstack/react-query-devtools": "^5.69.0",
@@ -24,6 +25,7 @@
     "react-day-picker": "^9.6.2",
     "react-dom": "^19.0.0",
     "react-modal": "^3.16.3",
+    "react-select": "^5.10.1",
     "tailwindcss": "^4.0.12",
     "uuid": "^11.1.0"
   },

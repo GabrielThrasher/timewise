@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 
 class PlanBase(BaseModel):
     id: str
@@ -13,3 +14,16 @@ class PlanEdit(PlanBase):
 
 class PlanDelete(PlanBase):
     pass
+
+class PlanClassCreate(BaseModel):
+    code: str
+    name: str
+    reason: str
+    prereqs: List[str]
+    credits: int 
+    year: str
+    semester: str
+
+class AddPlanClassReq(BaseModel):
+    classToAdd: PlanClassCreate
+    plan_id: str
