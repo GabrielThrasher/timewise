@@ -301,7 +301,6 @@ function EditItem({
   cancelEdit,
 }: EditItemProps) {
   const [semester, year] = item.semester.split(" ");
-  console.log(semester, year);
   const itemNameRef = useRef<string>(item.name);
   const semesterRef = useRef<string>(
     semesterMap[semester as keyof typeof semesterMap],

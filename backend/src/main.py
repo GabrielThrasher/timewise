@@ -6,7 +6,7 @@ from src.routes.auth.register import router as auth_router
 from src.routes.plans import router as plans_router
 from src.routes.overview import router as overview_router 
 from src.routes.schedules import router as schedules_router
-from src.routes import friends_routes
+from src.routes import friends
 
 
 @asynccontextmanager
@@ -19,7 +19,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 origins = [
-    "http://localhost:5173"
+    # "http://localhost:5173"
+    # "http://10.138.32.73:5173"
+    "*"
 ]
 
 app.add_middleware(
@@ -34,7 +36,7 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(plans_router, prefix="/api")
 app.include_router(schedules_router, prefix="/api")
 app.include_router(overview_router, prefix="/api")
-app.include_router(friends_routes.router, prefix="/api")
+app.include_router(friends.router, prefix="/api")
 
 @app.get("/")
 async def root():

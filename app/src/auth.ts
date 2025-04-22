@@ -10,7 +10,8 @@ export const register = async (
   email: string,
   password: string,
   name: string,
-  username: string,
+  major: string,
+  year: string,
 ): Promise<User | null> => {
   try {
     const userCredential = await createUserWithEmailAndPassword(
@@ -19,7 +20,7 @@ export const register = async (
       password,
     );
 
-    await createAccount(name, username);
+    await createAccount(name, major, year);
 
     return userCredential.user;
   } catch (error: any) {
@@ -49,13 +50,14 @@ export const logOut = async () => {
     await signOut(auth);
   } catch (error: any) {}
 };
-
+// const URL = "http://10.138.219.242:8000";
+const URL = "http://127.0.0.1:8000";
 export const getFirebaseToken = async (): Promise<string | null> => {
   const user = auth.currentUser;
   return user ? await user.getIdToken() : null;
 };
 
-const createAccount = async (name: string, username: string) => {
+const createAccount = async (name: string, major: string, year: string) => {
   const token = await getFirebaseToken();
 
   if (!token) {
@@ -63,7 +65,7 @@ const createAccount = async (name: string, username: string) => {
   }
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/api/auth/register", {
+    const response = await fetch(`${URL}/api/auth/register`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -71,7 +73,8 @@ const createAccount = async (name: string, username: string) => {
       },
       body: JSON.stringify({
         name,
-        username,
+        major,
+        year,
       }),
     });
 

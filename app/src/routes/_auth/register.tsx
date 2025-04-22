@@ -13,7 +13,8 @@ export const Route = createFileRoute("/_auth/register")({
 function RouteComponent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
+  const [major, setMajor] = useState("");
+  const [year, setYear] = useState("");
   const [name, setName] = useState("");
   const navigate = Route.useNavigate();
   const { auth } = Route.useRouteContext();
@@ -23,7 +24,7 @@ function RouteComponent() {
 
     if (email === "") return;
 
-    const user = await register(email, password, name, username);
+    const user = await register(email, password, name, major, year);
 
     if (user) {
       auth.updateAuthPromiseAfterLogin(user);
@@ -52,21 +53,22 @@ function RouteComponent() {
             onChange={(e) => setName(e.target.value)}
           />
         </div>
-        {/* <div className="mt-5">
-          <InputLabel htmlFor="name-input" text="Name" />
-          <Input
-            name="name-input"
-            type="text"
-            placeholder="Enter your university..."
-          />
-        </div> */}
         <div className="mt-5">
-          <InputLabel htmlFor="username-input" text="Username" />
+          <InputLabel htmlFor="username-input" text="Major" />
           <Input
             name="username-input"
             type="text"
-            placeholder="Enter a unique username..."
-            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter your major..."
+            onChange={(e) => setMajor(e.target.value)}
+          />
+        </div>
+        <div className="mt-5">
+          <InputLabel htmlFor="year-input" text="Year" />
+          <Input
+            name="year-input"
+            type="text"
+            placeholder="Enter your year..."
+            onChange={(e) => setYear(e.target.value)}
           />
         </div>
         <div className="mt-5">
